@@ -1,27 +1,21 @@
 const pool = require('../config/db');
 
-const createUser = async ({ username, phone }) => {
+const createMessage = async ({ chat_id, sender_id, ciphertext, message_type = 'text' }) => {
   const result = await pool.query(
-    `INSERT INTO users (username, phone) VALUES ($1, $2) RETURNING *`,
-    [username, phone]
+    `INSERT INTO messages (chat_id, sender_id, ciphertext, message_type)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [chat_id, sender_id, ciphertext, message_type]
   );
   return result.rows[0];
 };
 
-const findByPhone = async (phone) => {
+const getMessageById = async (id) => {
   const result = await pool.query(
-    `SELECT * FROM users WHERE phone = $1`,
-    [phone]
-  );
-  return result.rows[0] || null;
-};
-
-const findById = async (id) => {
-  const result = await pool.query(
-    `SELECT * FROM users WHERE id = $1`,
+    `SELECT * FROM messages WHERE id = $1`,
     [id]
   );
   return result.rows[0] || null;
 };
 
-module.exports = { createUser, findByPhone, findById };
+module.exports = { createMessage, getMessageById };

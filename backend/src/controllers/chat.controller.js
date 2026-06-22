@@ -32,16 +32,14 @@ const getUserChats = async (req, res) => {
 const getChatMessages = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Verify user is member of this chat
     const isMember = await Chat.isChatMember(id, req.user.id);
     if (!isMember) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
-
     const messages = await Chat.getChatMessages(id);
     res.json({ success: true, messages });
   } catch (error) {
+    console.error('getChatMessages error:', error.message); // ye add karo
     res.status(500).json({ success: false, message: error.message });
   }
 };

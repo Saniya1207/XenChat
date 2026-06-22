@@ -28,13 +28,21 @@ const createChat = async (user1_id, user2_id) => {
 
 const getUserChats = async (user_id) => {
   const result = await pool.query(
-    `SELECT c.*, 
+    `SELECT c.*,
       (SELECT ciphertext FROM messages 
        WHERE chat_id = c.id 
-       ORDER BY created_at DESC LIMIT 1) as last_message,
-      (SELECT created_at FROM messages 
+       ORDER BY sent_at DESC LIMIT 1) as last_message,
+      (SELECT sent_at FROM messages 
        WHERE chat_id = c.id 
-       ORDER BY created_at DESC LIMIT 1) as last_message_at
+       ORDER BY sent_at DESC LIMIT 1) as last_message_at,
+      (SELECT u.username FROM users u
+       JOIN chat_members cm ON cm.user_id = u.id
+       WHERE cm.chat_id = c.id AND u.id != $1
+       LIMIT 1) as other_username,
+      (SELECT u.id FROM users u
+       JOIN chat_members cm ON cm.user_id = u.id
+       WHERE cm.chat_id = c.id AND u.id != $1
+       LIMIT 1) as other_user_id
      FROM chats c
      JOIN chat_members cm ON cm.chat_id = c.id
      WHERE cm.user_id = $1
@@ -50,7 +58,7 @@ const getChatMessages = async (chat_id) => {
      FROM messages m
      JOIN users u ON u.id = m.sender_id
      WHERE m.chat_id = $1
-     ORDER BY m.created_at ASC`,
+     ORDER BY m.sent_at ASC`,
     [chat_id]
   );
   return result.rows;
